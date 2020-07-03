@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"
+        type="text/javascript"></script>
+    <script src="./mqtt.js" type="text/javascript"></script>
+    <title>MQTT Demo</title>
+</head>
+
+<body>
+    <h1>MQTT is awesome!</h1>
+
+    <script>
+        //const client = new Paho.MQTT.Client("192.168.0.23", Number(9001), "myClientId" + new Date().getTime());
+        //const client = new Paho.MQTT.Client("186.18.69.174", Number(789), "myClientId" + new Date().getTime());
+        const client = new Paho.MQTT.Client("mqtt.eclipse.org/mqtt", Number(80), "myClientId" + new Date().getTime());
+
+        const myTopic = "pingtest";
+
+        client.onConnectionLost = onConnectionLost;
+        client.onMessageArrived = onMessageArrived;
+
+        client.connect({ onSuccess: onConnect });
+
+        let count = 0;
+        function onConnect() {
+            console.log("onConnect");
+            client.subscribe(myTopic);
+            setInterval(() => { publish(myTopic, `The count is now ${count++}`) }, 1000)
+
+        }
+
+        function onConnectionLost(responseObject) {
+            if (responseObject.errorCode !== 0) {
+                console.log("onConnectionLost:" + responseObject.errorMessage);
+            }
+            client.connect({ onSuccess: onConnect });
+        }
+
+        const publish = (dest, msg) => {
+            console.log('desint :', dest, 'msggg', msg)
+            let message = new Paho.MQTT.Message(msg);
+            message.destinationName = dest;
+            client.send(message);
+        }
+
+        function onMessageArrived(message) {
+            let el = document.createElement('div')
+            el.innerHTML = message.payloadString
+            document.body.appendChild(el)
+        }
+
+    </script>
+</body>
+
+</html>
